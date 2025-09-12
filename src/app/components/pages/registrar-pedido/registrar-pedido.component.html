@@ -1,0 +1,110 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <div class="title-center">
+        <ion-icon name="add-circle"></ion-icon>
+        <span>Nuevo pedido</span>
+      </div>
+    </ion-title>
+    <ion-progress-bar *ngIf="this.isLoad" type="indeterminate"></ion-progress-bar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <form [formGroup]="pedidoForm" (ngSubmit)="submitPedido()">
+
+    <!-- Agrupar en tarjeta -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="document-text-outline"></ion-icon>
+          Detalles del Pedido
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+
+        <!-- Código de barra -->
+        <ion-input class="item-form" label="Código de barra" label-placement="floating" fill="outline"
+          formControlName="bar_code" type="number" placeholder="1234567890">
+        </ion-input>
+
+        <!-- Nombre del cliente -->
+        <ion-input class="item-form" label="Nombre del cliente" label-placement="floating" fill="outline"
+          formControlName="name_cli" type="text" placeholder="Juán Pérez">
+        </ion-input>
+
+        <!-- Teléfono -->
+        <ion-input class="item-form" label="Teléfono" label-placement="floating" fill="outline"
+          formControlName="tel_cli" type="number" placeholder="9361234567">
+        </ion-input>
+
+        <!-- Dispositivo -->
+        <ion-input class="item-form" label="Dispositivo" label-placement="floating" fill="outline"
+          formControlName="device_name" type="text" placeholder="Motorola G20 Plus">
+        </ion-input>
+
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Subir imágenes -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="image-outline"></ion-icon>
+          Imágenes
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+
+        <ion-text color="medium">Máx. 2 imágenes</ion-text><br/>
+
+        <ion-button color="primary" size="small" (click)="subirImages.click()">
+          <ion-icon name="images-outline"></ion-icon>
+          <span style="padding-left: 10px;">Subir Imágenes</span>
+        </ion-button>
+
+        <input type="file" #subirImages (change)="onImageChange($event)" multiple accept="image/*" hidden/>
+
+        <div class="image-previews" *ngIf="imagenesPreview.length > 0">
+          <img *ngFor="let img of imagenesPreview" [src]="img" class="preview-img" />
+        </div>
+
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Subir audio -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="mic-outline"></ion-icon>
+          Descripción del problema
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-button (click)="toggleRecording()" color="primary" size="small">
+          <ion-icon slot="start" [name]="isRecording ? 'stop-circle-outline' : 'mic-outline'"></ion-icon>
+          {{ isRecording ? 'Detener' : 'Grabar' }}
+        </ion-button>
+
+        <div *ngIf="audioURL" class="audio-player">
+          <audio [src]="audioURL" controls></audio>
+        </div>
+        <!-- Descripción -->
+         <ion-textarea auto-grow class="item-form" label="Descripción del problema" label-placement="floating"
+          fill="outline" formControlName="prob_texto" placeholder="Max 510 caracteres" style="margin-top: 20px;">
+        </ion-textarea>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Botón enviar -->
+    <ion-button expand="block" color="secondary" size="large" type="submit" [disabled]="pedidoForm.invalid">
+      Registrar Pedido
+    </ion-button>
+
+  </form>
+</ion-content>

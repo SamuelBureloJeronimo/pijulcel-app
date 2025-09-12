@@ -1,0 +1,87 @@
+{
+  "database": "pijulcel_app.db",
+  "version": 1,
+  "encrypted": false,
+  "mode": "full",
+  "tables": [
+    {
+      "name": "pedidos",
+      "schema": [
+        {
+          "column": "bar_code",
+          "value": "TEXT PRIMARY KEY NOT NULL CHECK(length(bar_code) <= 10)"
+        },
+        {
+          "column": "name_cli",
+          "value": "TEXT NOT NULL CHECK(length(name_cli) <= 50)"
+        },
+        {
+          "column": "tel_cli",
+          "value": "TEXT NOT NULL CHECK(length(tel_cli) <= 20)"
+        },
+        {
+          "column": "device_name",
+          "value": "TEXT NOT NULL CHECK(length(device_name) <= 60)"
+        },
+        {
+          "column": "prob_texto",
+          "value": "TEXT CHECK(length(prob_texto) <= 510)"
+        },
+        {
+          "column": "prob_audio",
+          "value": "TEXT CHECK(length(prob_audio) <= 100)"
+        },
+        {
+          "column": "img_1",
+          "value": "TEXT NOT NULL CHECK(length(img_1) <= 100)"
+        },
+        {
+          "column": "img_2",
+          "value": "TEXT CHECK(length(img_2) <= 100)"
+        },
+        {
+          "column": "estatus",
+          "value": "TEXT DEFAULT 'pendiente' CHECK(estatus IN ('pendiente','en_proceso','listo','entregado'))"
+        },
+        {
+          "column": "created",
+          "value": "DATETIME DEFAULT CURRENT_TIMESTAMP"
+        },
+        {
+          "column": "updated",
+          "value": "DATETIME DEFAULT CURRENT_TIMESTAMP"
+        }
+      ]
+    },
+    {
+      "name": "impresora_config",
+      "schema": [
+        {
+          "column": "id",
+          "value": "INTEGER PRIMARY KEY AUTOINCREMENT"
+        },
+        {
+          "column": "ip_wifi",
+          "value": "TEXT NOT NULL CHECK(length(ip_wifi) <= 15)"
+        },
+        {
+          "column": "puerto",
+          "value": "TEXT NOT NULL CHECK(length(puerto) <= 5)"
+        },
+        {
+          "column": "nombre",
+          "value": "TEXT NOT NULL CHECK(length(nombre) <= 50)"
+        },
+        {
+          "column": "created",
+          "value": "DATETIME DEFAULT CURRENT_TIMESTAMP"
+        },
+        {
+          "column": "updated",
+          "value": "DATETIME DEFAULT CURRENT_TIMESTAMP"
+        }
+      ]
+    }
+  ],
+  "views": []
+}

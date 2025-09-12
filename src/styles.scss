@@ -1,1 +1,12 @@
-/* You can add global styles to this file, and also import other style files */
+.title-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding-top: 6vh;
+  padding-bottom: 2vh;
+}
+
+.title-center ion-icon {
+  font-size: 20px;
+}
