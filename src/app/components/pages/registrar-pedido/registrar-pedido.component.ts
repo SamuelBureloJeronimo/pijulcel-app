@@ -2,31 +2,35 @@ import { addIcons } from 'ionicons';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonRefresher, IonRefresherContent, RefresherCustomEvent, IonProgressBar, IonInput, IonButton, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonText } from "@ionic/angular/standalone";
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonRefresher, IonRefresherContent, RefresherCustomEvent, IonProgressBar, IonInput, IonButton, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonText, IonAlert } from "@ionic/angular/standalone";
 import { IonIcon } from '@ionic/angular/standalone';
-import { checkmarkCircleOutline, documentTextOutline, imageOutline, imagesOutline, micOutline, playOutline, stopCircleOutline } from 'ionicons/icons';
+import { checkmarkCircleOutline, documentTextOutline, imageOutline, imagesOutline, micOutline, playOutline, stopCircleOutline, trash } from 'ionicons/icons';
 import { VoiceRecorder } from 'capacitor-voice-recorder';
 import { IonTextarea } from '@ionic/angular/standalone';
-import { ToastController } from '@ionic/angular';
+import { MessageService } from '../../../services/message.service';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Pedido } from '../../../../interfaces/pedido.model';
 
 @Component({
   selector: 'app-registrar-pedido',
   templateUrl: './registrar-pedido.component.html',
   styleUrls: ['./registrar-pedido.component.scss'],
-  imports: [IonText, IonCardContent, IonCardTitle, IonCardHeader, IonCard, IonButton, CommonModule, ReactiveFormsModule, IonInput, CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonRefresher, IonRefresherContent, IonProgressBar, IonIcon, IonTextarea],
+  imports: [IonAlert, IonText, IonCardContent, IonCardTitle, IonCardHeader, IonCard, IonButton, CommonModule, ReactiveFormsModule, IonInput, CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonRefresher, IonRefresherContent, IonProgressBar, IonIcon, IonTextarea],
 })
 export class RegistrarPedidoComponent implements OnInit {
 
   public isLoad: Boolean;
 
   pedidoForm: FormGroup;
-  imagenesPreview: string[] = [];
 
   isRecording = false;
+
+  imagenesPreview: string[] = [];
+
   audioBlob!: Blob;
   audioURL!: string;
 
-  constructor(private fb: FormBuilder, private toastCtrl: ToastController) {
+  constructor(private fb: FormBuilder, public msgServ: MessageService) {
     this.isLoad = true;
     this.pedidoForm = this.fb.group({
       bar_code: [{ value: '', disabled: true }, [Validators.required, Validators.maxLength(10)]],
@@ -36,20 +40,33 @@ export class RegistrarPedidoComponent implements OnInit {
       prob_texto: [''],
     });
     this.generarCodigo();
-    addIcons({ documentTextOutline, imageOutline, imagesOutline, checkmarkCircleOutline, playOutline, stopCircleOutline, micOutline });
+    addIcons({ documentTextOutline, imageOutline, imagesOutline, checkmarkCircleOutline, playOutline, stopCircleOutline, micOutline, trash });
   }
 
-  // Manejo de imágenes
-  onImageChange(event: any) {
-    const files: FileList = event.target.files;
-    this.imagenesPreview = [];
-    for (let i = 0; i < Math.min(files.length, 2); i++) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.imagenesPreview.push(e.target.result);
-      };
-      reader.readAsDataURL(files[i]);
+
+  async tomarFoto() {
+    if (this.imagenesPreview.length >= 2) {
+      this.msgServ.showScreenAlert('Límite alcanzado', 'Solo se permiten 2 imágenes por pedido');
+      return;
     }
+    try {
+      const image = await Camera.getPhoto({
+        quality: 80,
+        resultType: CameraResultType.DataUrl, // Devuelve base64
+        source: CameraSource.Camera // Abre la cámara directamente
+      });
+
+      if (image.dataUrl) {
+        this.imagenesPreview.push(image.dataUrl);
+      }
+
+    } catch (error) {
+      console.error('Error al tomar la foto', error);
+    }
+  }
+
+  deleteImage(index: number) {
+    this.imagenesPreview.splice(index, 1);
   }
 
   async generarCodigo() {
@@ -83,7 +100,7 @@ export class RegistrarPedidoComponent implements OnInit {
       // Solicitar permiso
       const permission = await VoiceRecorder.requestAudioRecordingPermission();
       if (!permission.value) {
-        alert('Permiso de micrófono denegado');
+        this.msgServ.showScreenAlert('Error', 'No se otorgó permiso para grabar audio');
         return;
       }
 
@@ -92,38 +109,30 @@ export class RegistrarPedidoComponent implements OnInit {
       this.isRecording = true;
 
     } catch (err) {
+      this.msgServ.showScreenAlert('Error', 'No se pudo iniciar la grabación');
       console.error('Error al iniciar grabación', err);
-      alert('No se pudo acceder al micrófono.');
     }
   }
 
-  // Dentro de submitPedido
-  submitPedido() {
-    if (this.pedidoForm.invalid) {
-      this.showToast('Completa todos los campos requeridos', 'danger');
-      return;
-    } else if (this.imagenesPreview.length <= 0) {
-      this.showToast('Sube al menos una imagen del dispositivo', 'danger');
-      return;
-    } else if (this.pedidoForm.value.prob_texto.trim() === '' && !this.audioBlob) {
-      this.showToast('Proporciona una descripción o graba un audio', 'danger');
-      return;
-    }
+  async submitPedido() {
 
-    const pedido = {
-      ...this.pedidoForm.value,
+
+    // 3️⃣ Crear objeto del pedido
+    const pedido: Pedido = {
+      bar_code: this.pedidoForm.get('bar_code')?.value,
+      name_cli: this.pedidoForm.get('name_cli')?.value,
+      tel_cli: this.pedidoForm.get('tel_cli')?.value,
+      device_name: this.pedidoForm.get('device_name')?.value,
+      prob_texto: this.pedidoForm.get('prob_texto')?.value,
       estatus: 'pendiente',
       created: new Date().toISOString(),
-      img_1: this.imagenesPreview[0] || null,
-      img_2: this.imagenesPreview[1] || null
+      img_1: this.imagenesPreview[0] || '',
+      img_2: this.imagenesPreview[1] || '',
+      prob_audio: this.audioURL || ''
     };
 
-    console.log('Pedido registrado:', pedido);
 
-    // Mostrar éxito
-    this.showToast('Pedido registrado correctamente', 'success');
-
-    // Reset
+    // 5️⃣ Reset del formulario
     this.pedidoForm.reset();
     this.generarCodigo();
     this.audioBlob = new Blob();
@@ -132,15 +141,17 @@ export class RegistrarPedidoComponent implements OnInit {
     this.imagenesPreview = [];
   }
 
-  async showToast(message: string, color: string = 'success') {
-    const toast = await this.toastCtrl.create({
-      message,
-      duration: 2000,
-      color,
-      position: 'bottom'
+
+  async convertUriToBase64(uri: string): Promise<string> {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject; reader.readAsDataURL(blob);
     });
-    toast.present();
   }
+
 
   ngOnInit() {
     setTimeout(() => {
@@ -150,12 +161,7 @@ export class RegistrarPedidoComponent implements OnInit {
 
   handleRefresh(event: RefresherCustomEvent) {
     setTimeout(() => {
-      this.pedidoForm.reset();
-      this.generarCodigo();
-      this.audioBlob = new Blob();
-      this.audioURL = '';
-      this.isRecording = false;
-      this.imagenesPreview = [];
+      window.location.reload();
       event.target.complete();
     }, 100);
   }

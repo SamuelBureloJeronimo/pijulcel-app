@@ -61,18 +61,28 @@
       </ion-card-header>
       <ion-card-content>
 
-        <ion-text color="medium">Máx. 2 imágenes</ion-text><br/>
+        <ion-text color="medium">Máx. 2 imágenes</ion-text><br />
 
-        <ion-button color="primary" size="small" (click)="subirImages.click()">
-          <ion-icon name="images-outline"></ion-icon>
-          <span style="padding-left: 10px;">Subir Imágenes</span>
+        <!-- Botón para abrir cámara -->
+        <ion-button color="secondary" expand="block" (click)="tomarFoto()">
+          <ion-icon name="camera"></ion-icon>
+          Tomar Foto
         </ion-button>
 
-        <input type="file" #subirImages (change)="onImageChange($event)" multiple accept="image/*" hidden/>
-
+        <!-- Previews -->
         <div class="image-previews" *ngIf="imagenesPreview.length > 0">
-          <img *ngFor="let img of imagenesPreview" [src]="img" class="preview-img" />
+          <ng-container *ngFor="let img of imagenesPreview; let i = index">
+            <div class="img-container">
+              <img [src]="img" class="preview-img" />
+
+              <!-- Botón para eliminar -->
+              <ion-icon name="trash" class="delete-icon" (click)="deleteImage(i)">
+              </ion-icon>
+            </div>
+          </ng-container>
+
         </div>
+
 
       </ion-card-content>
     </ion-card>
@@ -95,16 +105,19 @@
           <audio [src]="audioURL" controls></audio>
         </div>
         <!-- Descripción -->
-         <ion-textarea auto-grow class="item-form" label="Descripción del problema" label-placement="floating"
+        <ion-textarea auto-grow class="item-form" label="Descripción del problema" label-placement="floating"
           fill="outline" formControlName="prob_texto" placeholder="Max 510 caracteres" style="margin-top: 20px;">
         </ion-textarea>
       </ion-card-content>
     </ion-card>
 
     <!-- Botón enviar -->
-    <ion-button expand="block" color="secondary" size="large" type="submit" [disabled]="pedidoForm.invalid">
+    <ion-button expand="block" color="secondary" size="large" type="submit"
+      [disabled]="pedidoForm.invalid || this.imagenesPreview.length <= 0 || (this.pedidoForm.value.prob_texto.trim() === '' && !this.audioBlob)">
       Registrar Pedido
     </ion-button>
 
   </form>
+  <ion-alert [isOpen]="this.msgServ.isAlertOpenStatus()" [header]="this.msgServ.header" [message]="this.msgServ.message"
+    [buttons]="this.msgServ.buttons" (didDismiss)="this.msgServ.setAlertStatus(false)"></ion-alert>
 </ion-content>

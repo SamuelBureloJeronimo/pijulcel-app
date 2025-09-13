@@ -1,11 +1,11 @@
 {
-  "name": "pijulcel-app",
-  "version": "0.0.0",
+  "name": "pijulcel",
+  "version": "1.0.0",
   "scripts": {
     "ng": "ng",
     "dev": "ng serve",
     "build": "ng build",
-    "compile": "ng build & npx cap sync & npx cap open android",
+    "compile": "ng build && npx cap sync && npx cap open android",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -31,6 +31,7 @@
     "@capacitor/android": "^7.4.3",
     "@capacitor/angular": "2.0.3",
     "@capacitor/app": "7.1.0",
+    "@capacitor/camera": "^7.0.2",
     "@capacitor/core": "^7.4.3",
     "@capacitor/device": "^7.0.2",
     "@capacitor/haptics": "7.0.2",
@@ -41,7 +42,7 @@
     "capacitor-voice-recorder": "^7.0.6",
     "jeep-sqlite": "^2.8.0",
     "rxjs": "~7.8.0",
-    "sql.js": "^1.8.0",
+    "sql.js": "^1.11.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },

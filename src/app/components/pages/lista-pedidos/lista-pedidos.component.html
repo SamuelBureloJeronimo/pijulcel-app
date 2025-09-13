@@ -10,8 +10,11 @@
   </ion-toolbar>
   <!-- 🔎 Barra de búsqueda -->
   <ion-toolbar>
-    <ion-searchbar placeholder="Buscar por código, teléfono o cliente..." (ionInput)="filtrarPedidos($event)">
+    <ion-searchbar slot="start" placeholder="Código, teléfono o cliente..." (ionInput)="filtrarPedidos($event)">
     </ion-searchbar>
+    <!-- Filtrar por tiempo -->
+    <ion-button slot="end" id="open-action-sheet">Filtrar</ion-button>
+    <ion-action-sheet trigger="open-action-sheet" header="Filtrar por..." [buttons]="filtrar"></ion-action-sheet>
   </ion-toolbar>
 </ion-header>
 
@@ -24,25 +27,29 @@
 
   <ion-list *ngIf="pedidosFiltrados.length > 0; else sinPedidos">
     <ion-item *ngFor="let pedido of pedidosFiltrados">
-      <!-- Imagen desde carpeta public -->
-      <ion-thumbnail slot="start">
-        <img [src]="'assets/images/' + pedido.img_1" alt="Pedido" class="pedido-img" />
+      <!-- Imagen desde FileSystem -->
+      <ion-thumbnail slot="start" *ngIf="pedido.img_1">
+        <img [src]="getFileSrc(pedido.img_1)" alt="Pedido" class="pedido-img" />
       </ion-thumbnail>
 
       <!-- Datos del pedido -->
       <ion-label>
-        <h2>{{ pedido.name_cli }}</h2>
+        <h2>{{ pedido.img_1 }}</h2>
         <p>Código: {{ pedido.bar_code }}</p>
         <p>Tel: {{ pedido.tel_cli }}</p>
         <p>Fecha: {{ pedido.created | date:'short' }}</p>
       </ion-label>
 
-      <!-- Estatus -->
-      <ion-badge color="warning" slot="end">
-        {{ pedido.estatus }}
-      </ion-badge>
+      <!-- Botón de acciones -->
+      <ion-buttons slot="end">
+        <ion-button (click)="openAcciones(pedido)">
+          <ion-icon name="ellipsis-vertical"></ion-icon>
+        </ion-button>
+      </ion-buttons>
     </ion-item>
   </ion-list>
+
+
 
   <!-- Template alternativo cuando no hay datos -->
   <ng-template #sinPedidos>
@@ -51,12 +58,7 @@
       <p>No hay pedidos pendientes</p>
     </div>
   </ng-template>
-
-
-  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
-    <ion-fab-button>
-      <ion-icon name="camera"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
-
+  <!-- Alerta genérica -->
+  <ion-alert [isOpen]="this.msgServ.isAlertOpenStatus()" [header]="this.msgServ.header" [message]="this.msgServ.message"
+    [buttons]="this.msgServ.buttons" (didDismiss)="this.msgServ.setAlertStatus(false)"></ion-alert>
 </ion-content>

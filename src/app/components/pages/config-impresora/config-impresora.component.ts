@@ -29,9 +29,9 @@ export class ConfigImpresoraComponent implements OnInit {
 
   handleRefresh(event: RefresherCustomEvent) {
     setTimeout(() => {
-      // Any calls to load data go here
+      window.location.reload();
       event.target.complete();
-    }, 2000);
+    }, 100);
   }
 
 }
